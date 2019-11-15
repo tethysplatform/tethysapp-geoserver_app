@@ -1,0 +1,16 @@
+{% extends "geoserver_app/base.html" %}
+{% load tethys_gizmos %}
+
+{% block app_content %}
+    <h1>Draw on the Map</h1>
+
+    {% if geometry %}
+        <p>{{ geometry }}</p>
+    {% endif %}
+
+    <form method="post">
+        {% csrf_token %}
+        {% gizmo map_view map_options %}
+        <input name="submit" type="submit">
+    </form>
+{% endblock %}
