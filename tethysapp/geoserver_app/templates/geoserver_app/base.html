@@ -13,15 +13,17 @@
 {% block app_title %}{{ tethys_app.name }}{% endblock %}
 
 {% block app_navigation_items %}
-  <li class="title">App Navigation</li>
-  {% url 'geoserver_app:home' as home_url %}
-  {% url 'geoserver_app:map' as map_url %}
-  {% url 'geoserver_app:draw' as draw_url %}
-  <li class="{% if request.path == home_url %}active{% endif %}"><a href="{{ home_url }}">Upload Shapefile</a></li>
-  <li class="{% if request.path == map_url %}active{% endif %}"><a href="{{ map_url }}">GeoServer Layers</a></li>
-  <li class="{% if request.path == draw_url %}active{% endif %}"><a href="{{ draw_url }}">Draw</a></li>
+  <li class="nav-item title">App Navigation</li>
+  <li class="nav-item active"><a class="nav-link" href="">Home</a></li>
+  <li class="nav-item"><a class="nav-link" href="">Jobs</a></li>
+  <li class="nav-item"><a class="nav-link" href="">Results</a></li>
+  <li class="nav-item title">Steps</li>
+  <li class="nav-item"><a class="nav-link" href="">1. The First Step</a></li>
+  <li class="nav-item"><a class="nav-link" href="">2. The Second Step</a></li>
+  <li class="nav-item"><a class="nav-link" href="">3. The Third Step</a></li>
+  <li class="nav-item separator"></li>
+  <li class="nav-item"><a class="nav-link" href="">Get Started</a></li>
 {% endblock %}
-
 
 {% block app_content %}
 {% endblock %}
