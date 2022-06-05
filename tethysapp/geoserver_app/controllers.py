@@ -1,74 +1,50 @@
+import random
+import string
+
 from django.shortcuts import render
 from tethys_sdk.routing import controller
-from tethys_sdk.gizmos import Button
+
+from tethys_sdk.gizmos import *
+from .app import GeoserverApp as app
+
+
+WORKSPACE = 'geoserver_app'
+GEOSERVER_URI = 'http://www.example.com/geoserver-app'
+
 
 @controller
 def home(request):
     """
     Controller for the app home page.
     """
-    save_button = Button(
-        display_text='',
-        name='save-button',
-        icon='save',
-        style='success',
-        attributes={
-            'data-bs-toggle':'tooltip',
-            'data-bs-placement':'top',
-            'title':'Save'
-        }
-    )
+    # Retrieve a geoserver engine
+    geoserver_engine = app.get_spatial_dataset_service(name='main_geoserver', as_engine=True)
 
-    edit_button = Button(
-        display_text='',
-        name='edit-button',
-        icon='pen',
-        style='warning',
-        attributes={
-            'data-bs-toggle':'tooltip',
-            'data-bs-placement':'top',
-            'title':'Edit'
-        }
-    )
+    # Check for workspace and create workspace for app if it doesn't exist
+    response = geoserver_engine.list_workspaces()
 
-    remove_button = Button(
-        display_text='',
-        name='remove-button',
-        icon='trash',
-        style='danger',
-        attributes={
-            'data-bs-toggle':'tooltip',
-            'data-bs-placement':'top',
-            'title':'Remove'
-        }
-    )
+    if response['success']:
+        workspaces = response['result']
 
-    previous_button = Button(
-        display_text='Previous',
-        name='previous-button',
-        attributes={
-            'data-bs-toggle':'tooltip',
-            'data-bs-placement':'top',
-            'title':'Previous'
-        }
-    )
+        if WORKSPACE not in workspaces:
+            geoserver_engine.create_workspace(workspace_id=WORKSPACE, uri=GEOSERVER_URI)
 
-    next_button = Button(
-        display_text='Next',
-        name='next-button',
-        attributes={
-            'data-bs-toggle':'tooltip',
-            'data-bs-placement':'top',
-            'title':'Next'
-        }
-    )
+    # Case where the form has been submitted
+    if request.POST and 'submit' in request.POST:
+        # Verify files are included with the form
+        if request.FILES and 'files' in request.FILES:
+            # Get a list of the files
+            file_list = request.FILES.getlist('files')
 
-    context = {
-        'save_button': save_button,
-        'edit_button': edit_button,
-        'remove_button': remove_button,
-        'previous_button': previous_button,
-        'next_button': next_button
-    }
+            # Upload shapefile
+            store = ''.join(random.choice(string.ascii_lowercase + string.digits) for _ in range(6))
+            store_id = WORKSPACE + ':' + store
+            geoserver_engine.create_shapefile_resource(
+                store_id=store_id,
+                shapefile_upload=file_list,
+                overwrite=True
+            )
+
+    context = {}
 
     return render(request, 'geoserver_app/home.html', context)
