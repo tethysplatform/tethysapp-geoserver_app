@@ -116,3 +116,28 @@ def map(request):
     }
 
     return render(request, 'geoserver_app/map.html', context)
+
+
+@controller
+def draw(request):
+    drawing_options = MVDraw(
+        controls=['Modify', 'Move', 'Point', 'LineString', 'Polygon', 'Box'],
+        initial='Polygon'
+    )
+
+    map_options = MapView(
+        height='450px',
+        width='100%',
+        layers=[],
+        draw=drawing_options
+    )
+
+    geometry = ''
+
+    if request.POST and 'geometry' in request.POST:
+        geometry = request.POST['geometry']
+
+    context = {'map_options': map_options,
+               'geometry': geometry}
+
+    return render(request, 'geoserver_app/draw.html', context)
