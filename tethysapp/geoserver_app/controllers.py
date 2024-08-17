@@ -1,11 +1,10 @@
 import random
 import string
 
-from django.shortcuts import render
 from tethys_sdk.routing import controller
 
 from tethys_sdk.gizmos import *
-from .app import GeoserverApp as app
+from .app import App
 
 
 WORKSPACE = 'geoserver_app'
@@ -17,8 +16,9 @@ def home(request):
     """
     Controller for the app home page.
     """
+    breakpoint()
     # Retrieve a geoserver engine
-    geoserver_engine = app.get_spatial_dataset_service(name='main_geoserver', as_engine=True)
+    geoserver_engine = App.get_spatial_dataset_service(name='main_geoserver', as_engine=True)
 
     # Check for workspace and create workspace for app if it doesn't exist
     response = geoserver_engine.list_workspaces()
@@ -27,7 +27,10 @@ def home(request):
         workspaces = response['result']
 
         if WORKSPACE not in workspaces:
-            geoserver_engine.create_workspace(workspace_id=WORKSPACE, uri=GEOSERVER_URI)
+            from urllib.parse import urlparse
+            parsed = urlparse(geoserver_engine.public_endpoint)
+            uri = f'{parsed.scheme}://{parsed.netloc}/{WORKSPACE}'
+            geoserver_engine.create_workspace(workspace_id=WORKSPACE, uri=uri)
 
     # Case where the form has been submitted
     if request.POST and 'submit' in request.POST:
@@ -47,4 +50,4 @@ def home(request):
 
     context = {}
 
-    return render(request, 'geoserver_app/home.html', context)
+    return App.render(request, 'home.html', context)
