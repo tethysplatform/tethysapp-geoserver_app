@@ -1,12 +1,10 @@
 from tethys_sdk.base import TethysAppBase
 from tethys_sdk.app_settings import SpatialDatasetServiceSetting
 
-
-class GeoserverApp(TethysAppBase):
+class App(TethysAppBase):
     """
     Tethys app class for Geoserver App.
     """
-
     name = 'Geoserver App'
     description = ''
     package = 'geoserver_app'  # WARNING: Do not change this value
