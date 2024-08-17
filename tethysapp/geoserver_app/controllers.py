@@ -1,16 +1,11 @@
 import random
 import string
-
-from django.shortcuts import render
 from tethys_sdk.routing import controller
-
 from tethys_sdk.gizmos import *
-from .app import GeoserverApp as app
-
+from .app import App
 
 WORKSPACE = 'geoserver_app'
 GEOSERVER_URI = 'http://www.example.com/geoserver-app'
-
 
 @controller
 def home(request):
@@ -18,7 +13,7 @@ def home(request):
     Controller for the app home page.
     """
     # Retrieve a geoserver engine
-    geoserver_engine = app.get_spatial_dataset_service(name='main_geoserver', as_engine=True)
+    geoserver_engine = App.get_spatial_dataset_service(name='main_geoserver', as_engine=True)
 
     # Check for workspace and create workspace for app if it doesn't exist
     response = geoserver_engine.list_workspaces()
@@ -27,7 +22,10 @@ def home(request):
         workspaces = response['result']
 
         if WORKSPACE not in workspaces:
-            geoserver_engine.create_workspace(workspace_id=WORKSPACE, uri=GEOSERVER_URI)
+            from urllib.parse import urlparse
+            parsed = urlparse(geoserver_engine.public_endpoint)
+            uri = f'{parsed.scheme}://{parsed.netloc}/{WORKSPACE}'
+            geoserver_engine.create_workspace(workspace_id=WORKSPACE, uri=uri)
 
     # Case where the form has been submitted
     if request.POST and 'submit' in request.POST:
@@ -47,15 +45,14 @@ def home(request):
 
     context = {}
 
-    return render(request, 'geoserver_app/home.html', context)
-
+    return App.render(request, 'home.html', context)
 
 @controller
 def map(request):
     """
     Controller for the map page
     """
-    geoserver_engine = app.get_spatial_dataset_service(name='main_geoserver', as_engine=True)
+    geoserver_engine = App.get_spatial_dataset_service(name='main_geoserver', as_engine=True)
 
     options = []
 
@@ -81,7 +78,7 @@ def map(request):
         geoserver_layer = MVLayer(
             source='ImageWMS',
             options={
-                'url': 'http://localhost:8181/geoserver/wms',
+                'url': geoserver_engine.get_wms_endpoint(),
                 'params': {'LAYERS': selected_layer},
                 'serverType': 'geoserver'
             },
@@ -107,7 +104,8 @@ def map(request):
         width='100%',
         layers=map_layers,
         legend=True,
-        view=view_options
+        view=view_options,
+        basemap='OpenStreetMap'
     )
 
     context = {
@@ -115,8 +113,7 @@ def map(request):
         'select_options': select_options
     }
 
-    return render(request, 'geoserver_app/map.html', context)
-
+    return App.render(request, 'map.html', context)
 
 @controller
 def draw(request):
@@ -129,7 +126,8 @@ def draw(request):
         height='450px',
         width='100%',
         layers=[],
-        draw=drawing_options
+        draw=drawing_options,
+        basemap='OpenStreetMap'
     )
 
     geometry = ''
@@ -140,4 +138,4 @@ def draw(request):
     context = {'map_options': map_options,
                'geometry': geometry}
 
-    return render(request, 'geoserver_app/draw.html', context)
+    return App.render(request, 'draw.html', context)
