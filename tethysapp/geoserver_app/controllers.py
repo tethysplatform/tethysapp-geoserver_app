@@ -16,7 +16,6 @@ def home(request):
     """
     Controller for the app home page.
     """
-    breakpoint()
     # Retrieve a geoserver engine
     geoserver_engine = App.get_spatial_dataset_service(name='main_geoserver', as_engine=True)
 
